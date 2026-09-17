@@ -82,12 +82,12 @@
       <div class="t">Login Pemustaka</div>
       <div class="d">Untuk siswa & guru — cari buku, pinjam, dan tulis resume literasi.</div>
     </a>
-    <a class="portal-card" href="GANTI_DENGAN_URL_WEBAPP_PUBLIK?action=petugasPage">
+    <a class="portal-card" href="https://script.google.com/macros/s/AKfycbwUFa79Ep_fFhImDdD-nO5dqwA97pIJ9J90B9kl9pBRzojZfUhGy5ii-7gy8ZQ_tk7i_A/exec?action=petugasPage">
       <div class="ico">🪪</div>
       <div class="t">Duta Literasi</div>
       <div class="d">Untuk siswa Duta Literasi — catat pinjam, kembali, dan kunjungan.</div>
     </a>
-    <a class="portal-card" href="GANTI_DENGAN_URL_WEBAPP_ADMIN">
+    <a class="portal-card" href="https://script.google.com/a/macros/guru.smp.belajar.id/s/AKfycbxHbiQD8CTNGY07vGP3cMAjEjnFanF6CYRfnQVeDX5485l8PDzZKAmqvjW0QvQRXZpYKw/exec">
       <div class="ico">🗝️</div>
       <div class="t">Admin / Pustakawan</div>
       <div class="d">Untuk guru & pustakawan — kelola koleksi, dashboard, dan Duta Literasi.</div>
@@ -119,7 +119,7 @@
 
 <script>
   // GANTI dengan URL deployment PUBLIK Web App (yang aksesnya "Anyone") — sama dengan yang dipakai pemustaka.html
-  const API_URL = 'GANTI_DENGAN_URL_WEBAPP_PUBLIK';
+  const API_URL = 'https://script.google.com/macros/s/AKfycbwUFa79Ep_fFhImDdD-nO5dqwA97pIJ9J90B9kl9pBRzojZfUhGy5ii-7gy8ZQ_tk7i_A/exec';
 
   function apiGet(action, params) {
     const qs = new URLSearchParams({ action, ...(params || {}) }).toString();
