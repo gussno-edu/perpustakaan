@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perpustakaan Pragnyawacana — SMPN 4 Semin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#f6f1e4; --ink:#1f2a24; --green:#2f4a3d; --green-tint:#e4ebe5;
+    --rust:#c1522c; --rust-tint:#fbe8de; --gold:#b98a2e; --gold-tint:#f3e7cd;
+    --card:#ffffff; --muted:#6b7268; --line:#e4ddc9;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--cream); color:var(--ink); font-family:'Inter', sans-serif; -webkit-font-smoothing:antialiased;}
+  .shell{max-width:920px; margin:0 auto; padding:32px 20px 70px;}
+
+  .brand-label{font-size:11px; font-weight:600; letter-spacing:0.04em; color:var(--green);
+       background:var(--green-tint); border-radius:20px; padding:4px 12px; display:inline-block; margin-bottom:14px;}
+  h1{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:36px; margin:0 0 8px; letter-spacing:-0.01em;}
+  .tagline{font-size:15px; color:var(--muted); margin:0 0 28px; max-width:520px;}
+
+  h2{font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:19px; margin:0 0 14px;}
+
+  /* ---- Ringkasan angka ---- */
+  .mini-stats{display:flex; gap:18px; margin-bottom:32px; flex-wrap:wrap;}
+  .mini-stats .item{font-size:13px; color:var(--muted);}
+  .mini-stats .item b{font-family:'Space Grotesk', sans-serif; font-size:20px; color:var(--ink); display:block;}
+
+  /* ---- Portal links ---- */
+  .portal-row{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:14px; margin-bottom:36px;}
+  .portal-card{background:var(--card); border-radius:18px; padding:20px; box-shadow:0 1px 3px rgba(31,42,36,0.07);
+       text-decoration:none; color:var(--ink); display:block; transition:transform 0.1s;}
+  .portal-card:hover{transform:translateY(-2px);}
+  .portal-card .ico{font-size:22px; margin-bottom:8px;}
+  .portal-card .t{font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:15.5px; margin-bottom:4px;}
+  .portal-card .d{font-size:12.5px; color:var(--muted); line-height:1.4;}
+  .portal-card.pemustaka{background:var(--green); color:var(--card);}
+  .portal-card.pemustaka .d{color:var(--green-tint);}
+
+  /* ---- Search ---- */
+  .search-row{display:flex; gap:10px; margin-bottom:20px;}
+  .search-row input{flex:1; font-size:16px; padding:13px 16px; border:1.5px solid var(--line); border-radius:14px;
+       background:var(--card); font-family:'Inter',sans-serif;}
+  .search-row button{padding:0 22px; background:var(--green); color:var(--card); border:none; border-radius:14px; font-weight:600; cursor:pointer;}
+
+  .catalog{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:12px; margin-bottom:36px;}
+  .card{background:var(--card); border-radius:14px; padding:14px; box-shadow:0 1px 3px rgba(31,42,36,0.05);}
+  .card h3{font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:14.5px; margin:0 0 3px; line-height:1.3;}
+  .card .author{font-size:12px; color:var(--muted); margin-bottom:8px;}
+  .stamp{font-size:10.5px; font-weight:600; padding:3px 9px; border-radius:20px; display:inline-block;}
+  .stamp.tersedia{color:var(--green); background:var(--green-tint);}
+  .stamp.dipinjam{color:var(--rust); background:var(--rust-tint);}
+  .empty{font-size:13px; color:var(--muted); font-style:italic; padding:8px 0;}
+  .cta-pinjam{font-size:12px; color:var(--muted); margin-top:20px;}
+  .cta-pinjam a{color:var(--green); font-weight:600; text-decoration:none;}
+
+  /* ---- Terpopuler / baru ---- */
+  .dash-cols{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;}
+  @media (max-width:640px){ .dash-cols{grid-template-columns:1fr;} }
+  .box{background:var(--card); border-radius:16px; padding:18px; box-shadow:0 1px 3px rgba(31,42,36,0.06);}
+  .rank-row{display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--line); font-size:13.5px;}
+  .rank-row:last-child{border-bottom:none;}
+  .rank-row .sub{font-size:11.5px; color:var(--muted);}
+
+  footer{font-size:12px; color:var(--muted); text-align:center; margin-top:40px;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <span class="brand-label">SMPN 4 SEMIN</span>
+  <h1>Perpustakaan Pragnyawacana</h1>
+  <p class="tagline">Tuturan kebijaksanaan — jelajahi koleksi buku sekolah, pinjam, dan tulis resume literasimu.</p>
+
+  <div class="mini-stats" id="miniStats"></div>
+
+  <div class="portal-row">
+    <a class="portal-card pemustaka" href="./pemustaka.html">
+      <div class="ico">📖</div>
+      <div class="t">Login Pemustaka</div>
+      <div class="d">Untuk siswa & guru — cari buku, pinjam, dan tulis resume literasi.</div>
+    </a>
+    <a class="portal-card" href="GANTI_DENGAN_URL_WEBAPP_PUBLIK?action=petugasPage">
+      <div class="ico">🪪</div>
+      <div class="t">Duta Literasi</div>
+      <div class="d">Untuk siswa Duta Literasi — catat pinjam, kembali, dan kunjungan.</div>
+    </a>
+    <a class="portal-card" href="GANTI_DENGAN_URL_WEBAPP_ADMIN">
+      <div class="ico">🗝️</div>
+      <div class="t">Admin / Pustakawan</div>
+      <div class="d">Untuk guru & pustakawan — kelola koleksi, dashboard, dan Duta Literasi.</div>
+    </a>
+  </div>
+
+  <h2>Cari Buku</h2>
+  <div class="search-row">
+    <input type="text" id="searchInput" placeholder="Cari judul atau penulis…">
+    <button onclick="cariBuku()">Cari</button>
+  </div>
+  <div class="catalog" id="catalogResult"></div>
+  <p class="cta-pinjam">Mau pinjam atau tulis resume? <a href="./pemustaka.html">Masuk lewat Portal Siswa →</a></p>
+
+  <div class="dash-cols">
+    <div class="box">
+      <h2>Buku Terpopuler</h2>
+      <div id="daftarPopuler"></div>
+    </div>
+    <div class="box">
+      <h2>Buku Baru</h2>
+      <div id="daftarBaru"></div>
+    </div>
+  </div>
+
+  <footer>Perpustakaan Pragnyawacana — SMPN 4 Semin</footer>
+
+</div>
+
+<script>
+  // GANTI dengan URL deployment PUBLIK Web App (yang aksesnya "Anyone") — sama dengan yang dipakai pemustaka.html
+  const API_URL = 'GANTI_DENGAN_URL_WEBAPP_PUBLIK';
+
+  function apiGet(action, params) {
+    const qs = new URLSearchParams({ action, ...(params || {}) }).toString();
+    return fetch(`${API_URL}?${qs}`).then((r) => r.json());
+  }
+
+  function cariBuku() {
+    const q = document.getElementById('searchInput').value.trim();
+    apiGet('searchBooks', { q }).then((res) => renderKatalog(res.hasil));
+  }
+
+  function renderKatalog(daftar) {
+    const el = document.getElementById('catalogResult');
+    if (!daftar.length) {
+      el.innerHTML = '<div class="empty">Tidak ada buku yang cocok. Coba kata kunci lain.</div>';
+      return;
+    }
+    el.innerHTML = daftar.map((b) => {
+      const adaStok = b.tersedia > 0;
+      const stampCls = adaStok ? 'tersedia' : 'dipinjam';
+      const stampTxt = adaStok ? 'tersedia' : 'dipinjam semua';
+      return `
+        <div class="card">
+          <h3>${b.judul}</h3>
+          <div class="author">${b.penulis}</div>
+          <span class="stamp ${stampCls}">${stampTxt}</span>
+        </div>`;
+    }).join('');
+  }
+
+  function muatBeranda() {
+    apiGet('berandaPublik', {}).then((res) => {
+      document.getElementById('miniStats').innerHTML = `
+        <div class="item"><b>${res.totalJudul}</b>judul buku</div>
+        <div class="item"><b>${res.totalEksemplar}</b>eksemplar koleksi</div>
+      `;
+
+      const popEl = document.getElementById('daftarPopuler');
+      popEl.innerHTML = res.bukuTerpopuler.length
+        ? res.bukuTerpopuler.map((b, i) => `
+            <div class="rank-row">
+              <span>${i + 1}. ${b.judul}<div class="sub">${b.penulis}</div></span>
+              <span>${b.jumlah}x</span>
+            </div>`).join('')
+        : '<div class="empty">Belum ada data peminjaman.</div>';
+
+      const baruEl = document.getElementById('daftarBaru');
+      baruEl.innerHTML = res.bukuBaru.length
+        ? res.bukuBaru.map((b) => `
+            <div class="rank-row">
+              <span>${b.judul}<div class="sub">${b.penulis}</div></span>
+              <span>${b.tahunMasuk || ''}</span>
+            </div>`).join('')
+        : '<div class="empty">Belum ada data.</div>';
+    });
+  }
+
+  // Tampilkan beberapa judul awal biar katalog tidak kosong saat halaman dibuka
+  cariBuku();
+  muatBeranda();
+</script>
+</body>
+</html>
