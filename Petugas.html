@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Duta Literasi — Perpustakaan Pragnyawacana</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+  :root{
+    --cream:#f6f1e4; --ink:#1f2a24; --green:#2f4a3d; --green-tint:#e4ebe5;
+    --rust:#c1522c; --rust-tint:#fbe8de; --gold:#b98a2e; --gold-tint:#f3e7cd;
+    --card:#ffffff; --muted:#6b7268; --line:#e4ddc9;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--cream); color:var(--ink); font-family:'Inter', sans-serif; -webkit-font-smoothing:antialiased;}
+  .shell{max-width:520px; margin:0 auto; padding:28px 18px 60px;}
+
+  header{margin-bottom:20px;}
+  .brand-label{font-size:11px; font-weight:600; letter-spacing:0.04em; color:var(--green);
+       background:var(--green-tint); border-radius:20px; padding:4px 12px; display:inline-block; margin-bottom:10px;}
+  h1{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:22px; margin:0;}
+  h1 span{display:block; font-size:13px; font-weight:500; font-family:'Inter',sans-serif; color:var(--muted); margin-top:4px;}
+
+  .card-box{background:var(--card); border-radius:18px; padding:22px; margin-bottom:16px; box-shadow:0 1px 3px rgba(31,42,36,0.07);}
+  .card-box h2{font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:16px; margin:0 0 12px;}
+
+  input[type=text], input[type=password]{width:100%; font-size:15px; padding:11px 14px; border:1.5px solid var(--line);
+       border-radius:12px; margin-bottom:10px; font-family:'Inter',sans-serif;}
+  .row{display:flex; gap:8px;}
+  .row input{flex:1;}
+  button{font-size:13.5px; font-weight:600; padding:10px 16px; border:none; border-radius:12px;
+       background:var(--ink); color:var(--card); cursor:pointer;}
+  button.secondary{background:var(--green-tint); color:var(--green);}
+  button.full{width:100%;}
+  button:disabled{opacity:0.4; cursor:not-allowed;}
+
+  .status-line{font-size:13px; margin-top:8px; padding:9px 12px; border-radius:10px;}
+  .status-ok{background:var(--green-tint); color:var(--green);}
+  .status-err{background:var(--rust-tint); color:var(--rust);}
+
+  .peminjam-card{display:flex; justify-content:space-between; align-items:center;
+       background:var(--gold-tint); border-radius:12px; padding:10px 14px; margin-bottom:10px; font-size:13.5px;}
+
+  .tabs{display:flex; gap:8px; margin-bottom:16px;}
+  .tab{flex:1; text-align:center; font-size:13.5px; font-weight:600; padding:10px; border-radius:12px;
+       background:var(--card); cursor:pointer; color:var(--muted);}
+  .tab.active{background:var(--green); color:var(--card);}
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .hasil-judul{border-bottom:1px solid var(--line); padding:10px 0;}
+  .hasil-judul .judul{font-weight:600; font-size:14.5px;}
+  .hasil-judul .meta{font-size:12px; color:var(--muted); margin:2px 0 8px;}
+  .eksemplar-list{display:flex; flex-wrap:wrap; gap:6px;}
+  .eks-btn{font-size:12px; padding:7px 11px; border-radius:10px; border:none; cursor:pointer;}
+  .eks-btn.tersedia{background:var(--green-tint); color:var(--green);}
+  .eks-btn.dipinjam{background:var(--rust-tint); color:var(--rust); opacity:0.5; cursor:not-allowed;}
+
+  .loan-row{display:flex; justify-content:space-between; align-items:center;
+       border-bottom:1px solid var(--line); padding:10px 0; font-size:13.5px;}
+  .loan-row .m{font-size:11.5px; color:var(--muted);}
+  .late{color:var(--rust); font-weight:600;}
+
+  #qrReader{width:100%; max-width:280px; margin:10px auto;}
+
+  #topBar{display:none; justify-content:space-between; align-items:center; margin-bottom:16px;}
+  #topBar b{font-size:14px;}
+  #logoutBtn{background:none; color:var(--rust); font-size:12.5px; font-weight:600; padding:0; cursor:pointer; border:none;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header>
+    <span class="brand-label">SMPN 4 SEMIN</span>
+    <h1>Duta Literasi<span>Perpustakaan Pragnyawacana</span></h1>
+  </header>
+
+  <div id="topBar">
+    <b id="namaPetugas"></b>
+    <button id="logoutBtn" onclick="logout()">Keluar</button>
+  </div>
+
+  <!-- ============ LOGIN ============ -->
+  <div id="loginScreen" class="card-box">
+    <h2>Masuk sebagai petugas</h2>
+    <input type="text" id="usernameInput" placeholder="Username">
+    <input type="password" id="passwordInput" placeholder="Password">
+    <button class="full" onclick="loginPetugas()">Masuk</button>
+    <div id="loginStatus"></div>
+  </div>
+
+  <!-- ============ APP UTAMA ============ -->
+  <div id="appScreen" style="display:none;">
+
+    <div class="tabs">
+      <div class="tab active" data-panel="pinjam">Pinjamkan</div>
+      <div class="tab" data-panel="kembali">Kembalikan</div>
+    </div>
+
+    <!-- TAB PINJAMKAN -->
+    <section class="panel active" id="pinjam">
+      <div class="card-box">
+        <h2>1. Identifikasi peminjam</h2>
+        <div class="row">
+          <input type="text" id="idAnggotaInput" placeholder="Scan / ketik NISN atau NIP">
+          <button class="secondary" onclick="scanQr('idAnggotaInput')">Scan</button>
+          <button onclick="cekAnggota()">Cek</button>
+        </div>
+        <div id="anggotaStatus"></div>
+        <button class="secondary full" style="margin-top:8px;" onclick="catatKunjunganLangsung()">
+          Catat Kunjungan Saja (tidak pinjam buku)
+        </button>
+      </div>
+
+      <div class="card-box">
+        <h2>2. Cari & pilih buku</h2>
+        <div class="row">
+          <input type="text" id="cariJudulInput" placeholder="Ketik judul atau penulis…">
+          <button onclick="cariJudul()">Cari</button>
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <input type="text" id="scanBukuInput" placeholder="Atau scan QR di buku">
+          <button class="secondary" onclick="scanQr('scanBukuInput', cariByQr)">Scan</button>
+        </div>
+        <div id="hasilCari"></div>
+      </div>
+
+      <div id="qrReader"></div>
+    </section>
+
+    <!-- TAB KEMBALIKAN -->
+    <section class="panel" id="kembali">
+      <div class="card-box">
+        <h2>Scan QR buku</h2>
+        <div class="row">
+          <input type="text" id="scanKembaliInput" placeholder="Scan QR di buku">
+          <button class="secondary" onclick="scanQr('scanKembaliInput', kembalikanByQr)">Scan</button>
+          <button onclick="kembalikanByQr()">Proses</button>
+        </div>
+        <div id="kembaliQrStatus"></div>
+      </div>
+
+      <div class="card-box">
+        <h2>Atau cek pinjaman siswa/guru</h2>
+        <div class="row">
+          <input type="text" id="idAnggotaKembaliInput" placeholder="Scan / ketik NISN atau NIP">
+          <button class="secondary" onclick="scanQr('idAnggotaKembaliInput')">Scan</button>
+          <button onclick="lihatPinjamanAktif()">Lihat</button>
+        </div>
+        <div id="daftarPinjaman"></div>
+      </div>
+    </section>
+
+  </div>
+
+</div>
+
+<script>
+let token = null;
+let anggotaAktif = null;
+let html5QrCode = null;
+
+// ---------- Sesi (sessionStorage — hilang kalau tab ditutup, konsisten
+// dengan token 6 jam di server) ----------
+function simpanSesi(t, nama) {
+  sessionStorage.setItem('petugas_token', t);
+  sessionStorage.setItem('petugas_nama', nama);
+}
+function muatSesi() {
+  const t = sessionStorage.getItem('petugas_token');
+  const nama = sessionStorage.getItem('petugas_nama');
+  return t ? { token: t, nama } : null;
+}
+function logout() {
+  sessionStorage.removeItem('petugas_token');
+  sessionStorage.removeItem('petugas_nama');
+  location.reload();
+}
+
+function loginPetugas() {
+  const username = document.getElementById('usernameInput').value.trim();
+  const password = document.getElementById('passwordInput').value;
+  const statusDiv = document.getElementById('loginStatus');
+  if (!username || !password) return;
+  statusDiv.innerHTML = '<div class="status-line">Memeriksa…</div>';
+  google.script.run
+    .withSuccessHandler((res) => {
+      if (!res.sukses) {
+        statusDiv.innerHTML = `<div class="status-line status-err">${res.pesan}</div>`;
+        return;
+      }
+      token = res.token;
+      simpanSesi(token, res.nama);
+      tampilkanApp(res.nama);
+    })
+    .withFailureHandler((err) => {
+      statusDiv.innerHTML = `<div class="status-line status-err">${err.message}</div>`;
+    })
+    .loginPetugas(username, password);
+}
+
+function tampilkanApp(nama) {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  document.getElementById('topBar').style.display = 'flex';
+  document.getElementById('namaPetugas').textContent = nama;
+}
+
+// ---------- Tabs ----------
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.panel).classList.add('active');
+    stopScanner();
+  });
+});
+
+// ---------- QR scanner ----------
+function scanQr(targetInputId, afterFill) {
+  const readerDiv = document.getElementById('qrReader');
+  readerDiv.style.display = 'block';
+  readerDiv.innerHTML = '';
+  html5QrCode = new Html5Qrcode('qrReader');
+  html5QrCode.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: 220 },
+    (decodedText) => {
+      document.getElementById(targetInputId).value = decodedText;
+      stopScanner();
+      if (afterFill) afterFill();
+    }
+  ).catch(() => {
+    readerDiv.innerHTML = '<div class="status-line status-err">Kamera tidak bisa diakses.</div>';
+  });
+}
+function stopScanner() {
+  if (html5QrCode) { html5QrCode.stop().catch(() => {}); html5QrCode = null; }
+  document.getElementById('qrReader').style.display = 'none';
+  document.getElementById('qrReader').innerHTML = '';
+}
+
+// ---------- 1. Identifikasi peminjam (baca saja, tidak perlu token) ----------
+function cekAnggota() {
+  const id = document.getElementById('idAnggotaInput').value.trim();
+  const statusDiv = document.getElementById('anggotaStatus');
+  if (!id) return;
+  statusDiv.innerHTML = '<div class="status-line">Mengecek…</div>';
+  google.script.run
+    .withSuccessHandler((res) => {
+      if (!res.sukses) {
+        anggotaAktif = null;
+        statusDiv.innerHTML = `<div class="status-line status-err">${res.pesan}</div>`;
+        return;
+      }
+      anggotaAktif = res.profil;
+      // identifikasiPetugas sekalian mencatat kunjungan hari ini —
+      // tidak perlu scan terpisah lagi kalau anak ini juga mau pinjam buku.
+      statusDiv.innerHTML = `<div class="peminjam-card">
+        <span>${res.profil.nama} — ${res.profil.kelasJabatan}</span>
+        <span>${res.profil.jenisAnggota}</span>
+      </div>`;
+    })
+    .identifikasiPetugas(token, id);
+}
+
+// ---------- Catat kunjungan saja (anak literasi tanpa pinjam buku) ----------
+function catatKunjunganLangsung() {
+  const id = document.getElementById('idAnggotaInput').value.trim();
+  const statusDiv = document.getElementById('anggotaStatus');
+  if (!id) { alert('Isi/scan NISN atau NIP dulu.'); return; }
+  statusDiv.innerHTML = '<div class="status-line">Mencatat kunjungan…</div>';
+  google.script.run
+    .withSuccessHandler(() => {
+      statusDiv.innerHTML = '<div class="status-line status-ok">Kunjungan tercatat. Tidak perlu pinjam buku kalau memang cuma baca di tempat.</div>';
+    })
+    .withFailureHandler((err) => {
+      statusDiv.innerHTML = `<div class="status-line status-err">${err.message}</div>`;
+    })
+    .catatKunjunganPetugas(token, id);
+}
+
+// ---------- 2. Cari judul (baca saja) ----------
+function cariJudul() {
+  const q = document.getElementById('cariJudulInput').value.trim();
+  document.getElementById('hasilCari').innerHTML = '<div class="status-line">Mencari…</div>';
+  google.script.run.withSuccessHandler((res) => renderHasilCari(res.hasil)).searchBooks(q, '');
+}
+
+function renderHasilCari(daftar) {
+  const el = document.getElementById('hasilCari');
+  if (!daftar.length) { el.innerHTML = '<div class="status-line">Tidak ada hasil.</div>'; return; }
+  el.innerHTML = daftar.map((b, i) => `
+    <div class="hasil-judul">
+      <div class="judul">${b.judul}</div>
+      <div class="meta">${b.penulis} · ${b.tersedia}/${b.totalEksemplar} tersedia</div>
+      <div class="eksemplar-list" id="eks-${i}">
+        <button class="eks-btn tersedia" onclick="lihatEksemplar('${b.judulGroup}', 'eks-${i}')">Lihat eksemplar</button>
+      </div>
+    </div>`).join('');
+}
+
+function lihatEksemplar(judulGroup, targetId) {
+  google.script.run.withSuccessHandler((res) => {
+    const el = document.getElementById(targetId);
+    el.innerHTML = res.eksemplar.map((e) => {
+      const cls = e.status === 'Tersedia' ? 'tersedia' : 'dipinjam';
+      const disabled = e.status === 'Tersedia' ? '' : 'disabled';
+      return `<button class="eks-btn ${cls}" ${disabled} onclick="pinjamkan('${e.idBuku}')">Eks. ${e.noEksemplar} — ${e.status}</button>`;
+    }).join('');
+  }).getEksemplar(judulGroup);
+}
+
+function cariByQr() {
+  const idBuku = document.getElementById('scanBukuInput').value.trim();
+  if (!idBuku) return;
+  google.script.run.withSuccessHandler((res) => {
+    const el = document.getElementById('hasilCari');
+    if (!res.ditemukan) { el.innerHTML = '<div class="status-line status-err">Buku tidak ditemukan.</div>'; return; }
+    const cls = res.status === 'Tersedia' ? 'tersedia' : 'dipinjam';
+    const disabled = res.status === 'Tersedia' ? '' : 'disabled';
+    el.innerHTML = `<div class="hasil-judul">
+      <div class="judul">${res.judul}</div>
+      <div class="meta">${res.penulis} · Eksemplar ${res.noEksemplar} · ${res.status}</div>
+      <button class="eks-btn ${cls}" ${disabled} onclick="pinjamkan('${res.idBuku}')">Pinjamkan eksemplar ini</button>
+    </div>`;
+  }).cariBukuByQr(idBuku);
+}
+
+// ---------- Aksi TULIS: wajib bawa token ----------
+function pinjamkan(idBuku) {
+  if (!anggotaAktif) { alert('Identifikasi peminjam dulu di langkah 1.'); return; }
+  google.script.run
+    .withSuccessHandler((res) => {
+      document.getElementById('hasilCari').innerHTML =
+        `<div class="status-line status-ok">Berhasil dipinjamkan ke ${anggotaAktif.nama}. Jatuh tempo: ${new Date(res.jatuhTempo).toLocaleDateString('id-ID')}.</div>`;
+    })
+    .withFailureHandler((err) => {
+      document.getElementById('hasilCari').innerHTML = `<div class="status-line status-err">${err.message}</div>`;
+    })
+    .pinjamBukuPetugas(token, idBuku, anggotaAktif.idAnggota);
+}
+
+function kembalikanByQr() {
+  const idBuku = document.getElementById('scanKembaliInput').value.trim();
+  const statusDiv = document.getElementById('kembaliQrStatus');
+  if (!idBuku) return;
+  statusDiv.innerHTML = '<div class="status-line">Memproses…</div>';
+  google.script.run
+    .withSuccessHandler((res) => {
+      statusDiv.innerHTML = tampilkanHasilKembali(res);
+    })
+    .withFailureHandler((err) => {
+      statusDiv.innerHTML = `<div class="status-line status-err">${err.message}</div>`;
+    })
+    .kembalikanBukuByQrPetugas(token, idBuku);
+}
+
+function tampilkanHasilKembali(res) {
+  if (!res.denda || res.denda <= 0) {
+    return '<div class="status-line status-ok">Buku ditandai sudah kembali. Tidak ada denda.</div>';
+  }
+  return `<div class="status-line status-err">
+    Buku sudah kembali, tapi telat — denda Rp${res.denda.toLocaleString('id-ID')}.
+    <br><button style="margin-top:6px;" onclick="tandaiDendaLunas('${res.idPeminjaman}', this)">Tandai Lunas (sudah bayar tunai)</button>
+  </div>`;
+}
+
+function tandaiDendaLunas(idPeminjaman, tombolEl) {
+  tombolEl.disabled = true;
+  tombolEl.textContent = 'Menyimpan…';
+  google.script.run
+    .withSuccessHandler(() => {
+      tombolEl.parentElement.innerHTML = 'Buku sudah kembali. Denda sudah dibayar lunas.';
+    })
+    .withFailureHandler((err) => {
+      tombolEl.disabled = false;
+      tombolEl.textContent = 'Tandai Lunas (sudah bayar tunai)';
+      alert(err.message);
+    })
+    .tandaiDendaLunasPetugas(token, idPeminjaman);
+}
+
+function lihatPinjamanAktif() {
+  const id = document.getElementById('idAnggotaKembaliInput').value.trim();
+  const el = document.getElementById('daftarPinjaman');
+  if (!id) return;
+  el.innerHTML = '<div class="status-line">Memuat…</div>';
+  google.script.run.withSuccessHandler((res) => {
+    if (!res.pinjaman.length) { el.innerHTML = '<div class="status-line">Tidak ada pinjaman aktif.</div>'; return; }
+    el.innerHTML = res.pinjaman.map((p) => `
+      <div class="loan-row">
+        <div><div>${p.judul}</div>
+          <div class="m">Jatuh tempo: ${p.tanggalJatuhTempo ? new Date(p.tanggalJatuhTempo).toLocaleDateString('id-ID') : '-'}
+          ${p.status === 'Terlambat' ? '<span class="late"> · Terlambat</span>' : ''}</div></div>
+        <button onclick="tandaiKembali('${p.idPeminjaman}')">Tandai kembali</button>
+      </div>`).join('');
+  }).getMyLoans(id);
+}
+
+function tandaiKembali(idPeminjaman) {
+  google.script.run
+    .withSuccessHandler((res) => {
+      if (res.denda > 0) {
+        alert(`Buku dikembalikan, tapi telat — denda Rp${res.denda.toLocaleString('id-ID')}. Minta anak bayar tunai, lalu tandai lunas dari daftar denda.`);
+      }
+      lihatPinjamanAktif();
+    })
+    .withFailureHandler((err) => alert(err.message))
+    .kembalikanBukuPetugas(token, idPeminjaman);
+}
+
+// ---------- Inisialisasi ----------
+(function init() {
+  const sesi = muatSesi();
+  if (sesi) { token = sesi.token; tampilkanApp(sesi.nama); }
+})();
+</script>
+</body>
+</html>
