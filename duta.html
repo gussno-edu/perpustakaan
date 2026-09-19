@@ -19,7 +19,11 @@
 
   header{margin-bottom:20px;}
   .brand-label{font-size:11px; font-weight:600; letter-spacing:0.04em; color:var(--green);
-       background:var(--green-tint); border-radius:20px; padding:4px 12px; display:inline-block; margin-bottom:10px;}
+       background:var(--green-tint); border-radius:20px; padding:4px 12px; display:inline-block; margin-bottom:10px;
+       text-decoration:none; cursor:pointer;}
+  .brand-label:hover{background:var(--green); color:var(--card);}
+  .beranda-link{font-size:12px; color:var(--muted); text-decoration:none; font-weight:500;}
+  .beranda-link:hover{color:var(--green);}
   h1{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:22px; margin:0;}
   h1 span{display:block; font-size:13px; font-weight:500; font-family:'Inter',sans-serif; color:var(--muted); margin-top:4px;}
 
@@ -75,9 +79,12 @@
 <div class="shell">
 
   <header>
-    <span class="brand-label">SMPN 4 SEMIN</span>
+    <a href="https://smpn4semin.sch.id" target="_blank" rel="noopener" class="brand-label">SMPN 4 SEMIN</a>
     <h1>Duta Literasi<span>Perpustakaan Pragnyawacana</span></h1>
   </header>
+  <div style="text-align:right; margin-bottom:16px;">
+    <a href="./index.html" class="beranda-link">← Beranda</a>
+  </div>
 
   <div id="topBar">
     <b id="namaPetugas"></b>
