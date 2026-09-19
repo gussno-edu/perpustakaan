@@ -19,12 +19,16 @@
 
   header{padding-bottom:20px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:flex-start;}
   .brand-label{font-family:'Inter', sans-serif; font-size:11px; font-weight:600; letter-spacing:0.04em; color:var(--green);
-       background:var(--green-tint); border-radius:20px; padding:4px 12px; display:inline-block; margin-bottom:10px;}
+       background:var(--green-tint); border-radius:20px; padding:4px 12px; display:inline-block; margin-bottom:10px;
+       text-decoration:none; cursor:pointer;}
+  .brand-label:hover{background:var(--green); color:var(--card);}
   h1{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:28px; margin:0; line-height:1.1; letter-spacing:-0.01em;}
   h1 span{display:block; font-size:14px; font-weight:500; font-family:'Inter', sans-serif; color:var(--muted); margin-top:6px;}
   #profilRingkas{font-size:13px; text-align:right;}
   #profilRingkas b{display:block; font-weight:600;}
   #logoutBtn{background:none; border:none; color:var(--rust); font-weight:500; font-size:12px; cursor:pointer; padding:0; margin-top:4px;}
+  .beranda-link{font-size:12px; color:var(--muted); text-decoration:none; font-weight:500;}
+  .beranda-link:hover{color:var(--green);}
 
   /* ---- LOGIN SCREEN ---- */
   #loginScreen{background:var(--card); border-radius:20px; padding:36px 26px; text-align:center; box-shadow:0 1px 3px rgba(31,42,36,0.08);}
@@ -75,6 +79,7 @@
   .resume-card .judul{font-weight:600; font-size:14px;}
   .resume-card .tgl{font-size:11.5px; color:var(--muted); margin-bottom:6px;}
   .resume-card .isi{font-size:13.5px; color:#3a3f3a; line-height:1.5;}
+  .pdf-download-link{color:var(--green); font-weight:600; text-decoration:none;}
 </style>
 </head>
 <body>
@@ -82,13 +87,16 @@
 
   <header>
     <div>
-      <span class="brand-label">SMPN 4 SEMIN</span>
+      <a href="https://smpn4semin.sch.id" target="_blank" rel="noopener" class="brand-label">SMPN 4 SEMIN</a>
       <h1>Perpustakaan Pragnyawacana<span>Tuturan kebijaksanaan — cari dan pinjam buku</span></h1>
     </div>
-    <div id="profilRingkas" style="display:none;">
-      <b id="profilNama"></b>
-      <span id="profilKelas"></span><br>
-      <button id="logoutBtn" onclick="logout()">Keluar</button>
+    <div style="text-align:right;">
+      <a href="./index.html" class="beranda-link">← Beranda</a>
+      <div id="profilRingkas" style="display:none;">
+        <b id="profilNama"></b>
+        <span id="profilKelas"></span><br>
+        <button id="logoutBtn" onclick="logout()">Keluar</button>
+      </div>
     </div>
   </header>
 
@@ -134,6 +142,17 @@
 
   </div>
 
+</div>
+
+<!-- ============ MODAL BACA PDF ============ -->
+<div id="pdfModal" style="display:none; position:fixed; inset:0; background:rgba(31,42,36,0.85); z-index:100; align-items:center; justify-content:center; padding:16px;">
+  <div style="background:var(--card); border-radius:16px; width:100%; max-width:700px; height:85vh; display:flex; flex-direction:column; overflow:hidden;">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid var(--line);">
+      <div id="pdfDownloadWrap" style="font-size:13px;"></div>
+      <button onclick="tutupPdfModal()" style="background:var(--rust-tint); color:var(--rust);">Tutup</button>
+    </div>
+    <iframe id="pdfFrame" style="flex:1; border:none; width:100%;"></iframe>
+  </div>
 </div>
 
 <script>
@@ -235,7 +254,10 @@
       const stampTxt = adaStok ? 'tersedia' : 'dipinjam semua';
       const judulAman = b.judul.replace(/'/g, "\\'");
       const aksiDigital = b.format === 'Digital'
-        ? `<button onclick="unduhPdf('${b.judulGroup}')">Unduh PDF</button>` : '';
+        ? (adaStok
+            ? `<button onclick="bacaPdf('${b.judulGroup}')">Baca</button>`
+            : `<button disabled>Sedang dibaca</button>`)
+        : '';
       return `
         <div class="card">
           <h3>${b.judul}</h3>
@@ -270,24 +292,32 @@
             <div class="m">Dipinjam ${p.tanggalPinjam ? new Date(p.tanggalPinjam).toLocaleDateString('id-ID') : '-'}</div>
           </div>
           <div class="m ${p.status === 'Terlambat' ? 'late' : ''}">
-            ${p.jenisPinjam === 'Digital (PDF)' ? 'Digital' :
-              (p.status === 'Terlambat' ? 'Terlambat' : `Jatuh tempo ${new Date(p.tanggalJatuhTempo).toLocaleDateString('id-ID')}`)}
+            ${p.jenisPinjam === 'Digital (PDF)'
+              ? `Digital · otomatis kembali ${new Date(p.tanggalJatuhTempo).toLocaleDateString('id-ID')}`
+              : (p.status === 'Terlambat' ? 'Terlambat' : `Jatuh tempo ${new Date(p.tanggalJatuhTempo).toLocaleDateString('id-ID')}`)}
           </div>
         </div>`).join('');
     });
   }
 
-  // ---------- Unduh PDF (digital) ----------
-  function unduhPdf(judulGroup) {
-    // judulGroup di sini dipakai sekadar penanda; ID_Buku sebenarnya
-    // didapat dari hasil pencarian per-eksemplar. Untuk koleksi digital
-    // biasanya cuma 1 eksemplar per judul, jadi pemetaan judulGroup -> idBuku
-    // bisa disederhanakan di sisi backend bila perlu (idAnggota tetap wajib).
-    apiPost('ajukanUnduhPdf', { idAnggota: profil.idAnggota, idBuku: judulGroup }).then((res) => {
-      if (!res.sukses) { alert(res.error || 'Gagal mengunduh.'); return; }
-      window.open(res.urlUnduh, '_blank');
+  // ---------- Baca PDF (digital) — default cuma baca di viewer,
+  // tombol unduh cuma muncul kalau admin tandai Bisa_Diunduh = 'Ya' ----------
+  function bacaPdf(judulGroup) {
+    apiPost('ajukanAksesPdf', { idAnggota: profil.idAnggota, judulGroup }).then((res) => {
+      if (!res.sukses) { alert(res.error || 'Gagal membuka buku.'); return; }
+      const modal = document.getElementById('pdfModal');
+      document.getElementById('pdfFrame').src = res.viewUrl;
+      document.getElementById('pdfDownloadWrap').innerHTML = res.downloadUrl
+        ? `<a href="${res.downloadUrl}" target="_blank" class="pdf-download-link">Unduh file ini</a>`
+        : '';
+      modal.style.display = 'flex';
       muatPinjamanSaya();
+      cariBuku(); // refresh katalog biar status "sedang dibaca" ikut update
     });
+  }
+  function tutupPdfModal() {
+    document.getElementById('pdfModal').style.display = 'none';
+    document.getElementById('pdfFrame').src = '';
   }
 
   // ---------- Literasi: resume bacaan ----------
