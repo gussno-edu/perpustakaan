@@ -17,7 +17,9 @@
   .shell{max-width:920px; margin:0 auto; padding:32px 20px 70px;}
 
   .brand-label{font-size:11px; font-weight:600; letter-spacing:0.04em; color:var(--green);
-       background:var(--green-tint); border-radius:20px; padding:4px 12px; display:inline-block; margin-bottom:14px;}
+       background:var(--green-tint); border-radius:20px; padding:4px 12px; display:inline-block; margin-bottom:14px;
+       text-decoration:none; cursor:pointer;}
+  .brand-label:hover{background:var(--green); color:var(--card);}
   h1{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:36px; margin:0 0 8px; letter-spacing:-0.01em;}
   .tagline{font-size:15px; color:var(--muted); margin:0 0 28px; max-width:520px;}
 
@@ -40,10 +42,10 @@
   .portal-card.pemustaka .d{color:var(--green-tint);}
 
   /* ---- Search ---- */
-  .search-row{display:flex; gap:10px; margin-bottom:20px;}
-  .search-row input{flex:1; font-size:16px; padding:13px 16px; border:1.5px solid var(--line); border-radius:14px;
-       background:var(--card); font-family:'Inter',sans-serif;}
-  .search-row button{padding:0 22px; background:var(--green); color:var(--card); border:none; border-radius:14px; font-weight:600; cursor:pointer;}
+  .filter-row{display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;}
+  .filter-row input, .filter-row select{flex:1; min-width:140px; font-size:15px; padding:13px 16px; border:1.5px solid var(--line); border-radius:14px;
+       background:var(--card); font-family:'Inter',sans-serif; color:var(--ink);}
+  .filter-row button{padding:0 22px; background:var(--green); color:var(--card); border:none; border-radius:14px; font-weight:600; cursor:pointer;}
 
   .catalog{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:12px; margin-bottom:36px;}
   .card{background:var(--card); border-radius:14px; padding:14px; box-shadow:0 1px 3px rgba(31,42,36,0.05);}
@@ -63,6 +65,8 @@
   .rank-row{display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--line); font-size:13.5px;}
   .rank-row:last-child{border-bottom:none;}
   .rank-row .sub{font-size:11.5px; color:var(--muted);}
+  .secondary-link{background:none; border:none; color:var(--green); font-weight:600; font-size:12.5px;
+       cursor:pointer; padding:10px 0 0; display:block; width:100%; text-align:left;}
 
   footer{font-size:12px; color:var(--muted); text-align:center; margin-top:40px;}
 </style>
@@ -70,7 +74,7 @@
 <body>
 <div class="shell">
 
-  <span class="brand-label">SMPN 4 SEMIN</span>
+  <a href="https://smpn4semin.sch.id" target="_blank" rel="noopener" class="brand-label">SMPN 4 SEMIN</a>
   <h1>Perpustakaan Pragnyawacana</h1>
   <p class="tagline">Tuturan kebijaksanaan — jelajahi koleksi buku sekolah, pinjam, dan tulis resume literasimu.</p>
 
@@ -94,24 +98,40 @@
     </a>
   </div>
 
-  <h2>Cari Buku</h2>
-  <div class="search-row">
-    <input type="text" id="searchInput" placeholder="Cari judul atau penulis…">
-    <button onclick="cariBuku()">Cari</button>
-  </div>
-  <div class="catalog" id="catalogResult"></div>
-  <p class="cta-pinjam">Mau pinjam atau tulis resume? <a href="./pemustaka.html">Masuk lewat Portal Siswa →</a></p>
-
   <div class="dash-cols">
     <div class="box">
       <h2>Buku Terpopuler</h2>
       <div id="daftarPopuler"></div>
+      <button class="secondary-link" id="btnSelengkapnyaPopuler" onclick="toggleSelengkapnya('populer')" style="display:none;">Selengkapnya →</button>
     </div>
     <div class="box">
       <h2>Buku Baru</h2>
       <div id="daftarBaru"></div>
+      <button class="secondary-link" id="btnSelengkapnyaBaru" onclick="toggleSelengkapnya('baru')" style="display:none;">Selengkapnya →</button>
     </div>
   </div>
+
+  <h2>Cari Buku</h2>
+  <div class="filter-row">
+    <input type="text" id="searchJudulInput" placeholder="Judul…">
+    <input type="text" id="searchPenulisInput" placeholder="Pengarang…">
+    <select id="searchKategoriInput">
+      <option value="">Semua kategori</option>
+      <option value="0">000 – Karya Umum, Komputer, dan Informasi</option>
+      <option value="1">100 – Filsafat dan Psikologi</option>
+      <option value="2">200 – Agama</option>
+      <option value="3">300 – Ilmu Sosial</option>
+      <option value="4">400 – Bahasa</option>
+      <option value="5">500 – Ilmu Pengetahuan Alam dan Matematika</option>
+      <option value="6">600 – Teknologi dan Ilmu Terapan</option>
+      <option value="7">700 – Kesenian, Olahraga, dan Rekreasi</option>
+      <option value="8">800 – Sastra dan Kesusastraan</option>
+      <option value="9">900 – Sejarah dan Geografi</option>
+    </select>
+    <button onclick="cariBuku()">Cari</button>
+  </div>
+  <div class="catalog" id="catalogResult"></div>
+  <p class="cta-pinjam">Mau pinjam atau tulis resume? <a href="./pemustaka.html">Masuk lewat Portal Siswa →</a></p>
 
   <footer>Perpustakaan Pragnyawacana — SMPN 4 Semin</footer>
 
@@ -127,8 +147,10 @@
   }
 
   function cariBuku() {
-    const q = document.getElementById('searchInput').value.trim();
-    apiGet('searchBooks', { q }).then((res) => renderKatalog(res.hasil));
+    const judul = document.getElementById('searchJudulInput').value.trim();
+    const penulis = document.getElementById('searchPenulisInput').value.trim();
+    const kategoriDDC = document.getElementById('searchKategoriInput').value;
+    apiGet('searchBooks', { judul, penulis, kategoriDDC }).then((res) => renderKatalog(res.hasil));
   }
 
   function renderKatalog(daftar) {
@@ -150,30 +172,46 @@
     }).join('');
   }
 
+  // ---------- Terpopuler / Baru: tampil 5, tombol buka sampai 10 ----------
+  let dataPopuler = [];
+  let dataBaru = [];
+  const dibuka = { populer: false, baru: false };
+
+  function renderRingkas(elId, tombolId, key, daftar, formatBaris) {
+    const list = key === 'populer' ? dataPopuler : dataBaru;
+    document.getElementById(elId).innerHTML = list.length
+      ? (dibuka[key] ? list : list.slice(0, 5)).map(formatBaris).join('')
+      : '<div class="empty">Belum ada data.</div>';
+    document.getElementById(tombolId).style.display = list.length > 5 ? 'block' : 'none';
+    document.getElementById(tombolId).textContent = dibuka[key] ? '← Tampilkan lebih sedikit' : 'Selengkapnya →';
+  }
+
+  function toggleSelengkapnya(key) {
+    dibuka[key] = !dibuka[key];
+    if (key === 'populer') {
+      renderRingkas('daftarPopuler', 'btnSelengkapnyaPopuler', 'populer', dataPopuler, formatPopuler);
+    } else {
+      renderRingkas('daftarBaru', 'btnSelengkapnyaBaru', 'baru', dataBaru, formatBaru);
+    }
+  }
+
+  function formatPopuler(b, i) {
+    return `<div class="rank-row"><span>${i + 1}. ${b.judul}<div class="sub">${b.penulis}</div></span><span>${b.jumlah}x</span></div>`;
+  }
+  function formatBaru(b) {
+    return `<div class="rank-row"><span>${b.judul}<div class="sub">${b.penulis}</div></span><span>${b.tahunMasuk || ''}</span></div>`;
+  }
+
   function muatBeranda() {
     apiGet('berandaPublik', {}).then((res) => {
       document.getElementById('miniStats').innerHTML = `
         <div class="item"><b>${res.totalJudul}</b>judul buku</div>
         <div class="item"><b>${res.totalEksemplar}</b>eksemplar koleksi</div>
       `;
-
-      const popEl = document.getElementById('daftarPopuler');
-      popEl.innerHTML = res.bukuTerpopuler.length
-        ? res.bukuTerpopuler.map((b, i) => `
-            <div class="rank-row">
-              <span>${i + 1}. ${b.judul}<div class="sub">${b.penulis}</div></span>
-              <span>${b.jumlah}x</span>
-            </div>`).join('')
-        : '<div class="empty">Belum ada data peminjaman.</div>';
-
-      const baruEl = document.getElementById('daftarBaru');
-      baruEl.innerHTML = res.bukuBaru.length
-        ? res.bukuBaru.map((b) => `
-            <div class="rank-row">
-              <span>${b.judul}<div class="sub">${b.penulis}</div></span>
-              <span>${b.tahunMasuk || ''}</span>
-            </div>`).join('')
-        : '<div class="empty">Belum ada data.</div>';
+      dataPopuler = res.bukuTerpopuler || [];
+      dataBaru = res.bukuBaru || [];
+      renderRingkas('daftarPopuler', 'btnSelengkapnyaPopuler', 'populer', dataPopuler, formatPopuler);
+      renderRingkas('daftarBaru', 'btnSelengkapnyaBaru', 'baru', dataBaru, formatBaru);
     });
   }
 
